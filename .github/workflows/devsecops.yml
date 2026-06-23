@@ -1,4 +1,4 @@
-name: DevSecOps-Pipeline
+name: GHAS-DevSecOps-Pipeline
 
 on: [push]
 
@@ -14,28 +14,26 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-        # 1. SAST (Static Application Security Testing)
-      - name: Run Semgrep (Code Scan)
-        run: |
-          pip install semgrep
-          semgrep scan --config=p/security,p/python --sarif --output=semgrep.sarif || true
+      # 1. GHAS Native Code Scanning (CodeQL)
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: 'python'
+          # This tells CodeQL to use its standard security queries
+          queries: security-extended,security-and-quality
 
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:python"
 
-      # 2. Container & IaC Scan
+      # 2. Container Configuration Scan (Trivy remains for Docker layers)
       - name: Run Trivy (Dockerfile Scan)
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'config'
           format: 'sarif'
           output: 'trivy.sarif'
-
-      # 3. Upload Results to GitHub Dashboard
-      - name: Upload Semgrep Results
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: semgrep.sarif
-          category: semgrep-sast
 
       - name: Upload Trivy Results
         uses: github/codeql-action/upload-sarif@v3
