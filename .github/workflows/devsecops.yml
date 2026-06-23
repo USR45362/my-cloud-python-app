@@ -14,11 +14,12 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-          # 1. SAST (Static Application Security Testing)
+        # 1. SAST (Static Application Security Testing)
       - name: Run Semgrep (Code Scan)
         run: |
           pip install semgrep
-          semgrep scan --config="p/security" --config="p/python" --sarif --output=semgrep.sarif || true
+          semgrep scan --config=p/security,p/python --sarif --output=semgrep.sarif || true
+
 
       # 2. Container & IaC Scan
       - name: Run Trivy (Dockerfile Scan)
