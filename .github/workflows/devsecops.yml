@@ -1,0 +1,43 @@
+name: DevSecOps-Pipeline
+
+on: [push]
+
+jobs:
+  security_scans:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 1. SAST (Static Application Security Testing)
+      - name: Run Semgrep (Code Scan)
+        run: |
+          pip install semgrep
+          semgrep scan --config=auto --sarif --output=semgrep.sarif || true
+
+      # 2. Container & IaC Scan
+      - name: Run Trivy (Dockerfile Scan)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          format: 'sarif'
+          output: 'trivy.sarif'
+
+      # 3. Upload Results to GitHub Dashboard
+      - name: Upload Semgrep Results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep-sast
+
+      - name: Upload Trivy Results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy.sarif
+          category: trivy-config
