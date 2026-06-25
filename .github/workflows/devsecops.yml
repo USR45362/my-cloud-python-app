@@ -16,6 +16,13 @@ jobs:
         uses: actions/checkout@v4
 
       # =======================================================
+      # NEW: Software Supply Chain Scan (SCA)
+      # =======================================================
+      - name: Dependency Review (SCA)
+        uses: actions/dependency-review-action@v4
+        # This will flag any critical or high supply chain flaws introduced
+
+      # =======================================================
       # PHASE 1: SAST (GitHub Advanced Security - CodeQL)
       # =======================================================
       - name: Initialize CodeQL
